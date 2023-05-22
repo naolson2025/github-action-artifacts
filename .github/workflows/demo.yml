@@ -28,6 +28,8 @@ jobs:
       - name: Build website
         run: npm run build
         # we can upload the artifacts to the github server
+        # which means we can download them in other jobs
+        # we can also manually download them by navigating to the actions tab in github
         # in this case, we are uploading the dist folder
         # which contains the production assets
       - name: Upload artifacts
@@ -36,9 +38,24 @@ jobs:
           name: dist-files
           # can specify multiple paths here
           path: dist
+  # here in the deploy job we want to access the production assets
+  # from the build job, but since each job runs in a separate container
+  # we need to download the artifacts from the build job
   deploy:
+    # deploy must run after build, because we need the production assests
+    # from the build job
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          # the name of the artifact we want to download
+          # should have the same name as the upload artifact step in the build job
+          name: dist-files
+          path: dist
+        # for testing purposes, we can output the contents of the dist folder
+      - name: output dist folder
+        run: ls
       - name: Deploy
         run: echo "Deploying..."
