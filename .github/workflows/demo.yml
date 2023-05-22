@@ -11,6 +11,15 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
+        # we can cache dependencies across all jobs
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          # will be used to create a unique key for the cache
+          # we hash the package-lock.json file because it contains the exact version of each dependency
+          # if the dependencies change, the hash will change, and the cache will be invalidated
+          key: deps-node-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm ci
       - name: Lint code
@@ -28,6 +37,12 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
+      # need to add the cache to all jobs that install depenedencies
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: deps-node-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm ci
       - name: Build website
