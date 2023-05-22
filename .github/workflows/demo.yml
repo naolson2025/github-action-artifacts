@@ -20,6 +20,11 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
+    outputs:
+      # script-file is not a keyword, name whatever you want
+      # .publish is the id of the step that outputs the script-file
+      script-file: ${{ steps.publish.outputs.script-file }}
     steps:
       - name: Get code
         uses: actions/checkout@v3
@@ -27,6 +32,17 @@ jobs:
         run: npm ci
       - name: Build website
         run: npm run build
+        # example of providing an output from one job to another
+        # we can use this output in other jobs
+        # in this case, we want to provide the name of the production JS file
+        # since this production JS file is created in the build job
+        # is has a random name
+      - name: Publish JS filename
+        id: publish
+        # this is a regular linx command to find the name of the production JS file
+        # script-file is the chosen name of the output (needs to match above)
+        # $GITHUB_OUTPUT is a special variable that is used to pass the output to other jobs
+        run: find dist/assets/*.js -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';'
         # we can upload the artifacts to the github server
         # which means we can download them in other jobs
         # we can also manually download them by navigating to the actions tab in github
@@ -57,5 +73,8 @@ jobs:
         # for testing purposes, we can output the contents of the dist folder
       - name: output dist folder
         run: ls dist
+      - name: Output filename
+        # we can access the output from the build job
+        run: echo "${{ needs.build.outputs.script-file }}"
       - name: Deploy
         run: echo "Deploying..."
