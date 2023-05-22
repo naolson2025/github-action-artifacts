@@ -56,6 +56,6 @@ jobs:
           path: dist
         # for testing purposes, we can output the contents of the dist folder
       - name: output dist folder
-        run: ls
+        run: ls dist
       - name: Deploy
         run: echo "Deploying..."
